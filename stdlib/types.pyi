@@ -16,8 +16,8 @@ from collections.abc import (
     ValuesView,
 )
 from importlib.machinery import ModuleSpec
-from typing import Any, ClassVar, Literal, TypeVar, final, overload
-from typing_extensions import ParamSpec, Self, TypeAliasType, TypeVarTuple, deprecated
+from typing import Any, ClassVar, Generic, Literal, final, overload
+from typing_extensions import ParamSpec, Self, TypeAliasType, TypeVar, TypeVarTuple, deprecated
 
 if sys.version_info >= (3, 14):
     from _typeshed import AnnotateFunc
@@ -115,7 +115,7 @@ class FunctionType:
     @overload
     def __get__(self, instance: None, owner: type, /) -> FunctionType: ...
     @overload
-    def __get__(self, instance: object, owner: type | None = None, /) -> MethodType: ...
+    def __get__(self, instance: _T1, owner: type | None = None, /) -> MethodType[_T1]: ...
 
 LambdaType = FunctionType
 
@@ -464,8 +464,10 @@ class CoroutineType(Coroutine[_YieldT_co, _SendT_contra, _ReturnT_co]):
     if sys.version_info >= (3, 13):
         def __class_getitem__(cls, item: Any, /) -> Any: ...
 
+_InstanceT_co = TypeVar("_InstanceT_co", default=object, covariant=True)
+
 @final
-class MethodType:
+class MethodType(Generic[_InstanceT_co]):
     @property
     def __closure__(self) -> tuple[CellType, ...] | None: ...  # inherited from the added function
     @property
@@ -475,12 +477,12 @@ class MethodType:
     @property
     def __func__(self) -> Callable[..., Any]: ...
     @property
-    def __self__(self) -> object: ...
+    def __self__(self) -> _InstanceT_co: ...
     @property
     def __name__(self) -> str: ...  # inherited from the added function
     @property
     def __qualname__(self) -> str: ...  # inherited from the added function
-    def __new__(cls, func: Callable[..., Any], instance: object, /) -> Self: ...
+    def __new__(cls, func: Callable[..., Any], instance: _InstanceT_co, /) -> Self: ...
     def __call__(self, *args: Any, **kwargs: Any) -> Any: ...
     def __eq__(self, value: object, /) -> bool: ...
     def __hash__(self) -> int: ...
